@@ -23,8 +23,8 @@ On Linux, use your package manager instead of Homebrew.
 ## Setup
 
 ```bash
-git clone <this-repo-url>
-cd ytslideripper
+git clone https://github.com/normative/tripper.git
+cd tripper
 
 python3 -m venv venv
 source venv/bin/activate
@@ -64,3 +64,13 @@ Downloaded videos and Whisper transcriptions are cached in `/tmp/talk_transcribe
 | large | ~10-20 min | Best | Accented speech, noisy audio, non-English |
 
 All models run locally on your CPU/GPU. Nothing is sent to the cloud.
+
+## Built with
+
+Tripper is made possible by these open source projects:
+
+- **[OpenAI Whisper](https://github.com/openai/whisper)** — Open source speech recognition model that runs locally. Handles the audio-to-text transcription.
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** — Feature-rich command-line video downloader. Supports YouTube, Instagram, and [thousands of other sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md).
+- **[ffmpeg](https://ffmpeg.org/)** — The Swiss army knife of audio/video processing. Used here for scene detection and audio extraction.
+- **[Flask](https://github.com/pallets/flask)** — Lightweight Python web framework powering the backend and SSE streaming.
+- **[PyTorch](https://github.com/pytorch/pytorch)** — Machine learning framework that Whisper runs on.
