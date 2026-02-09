@@ -1,5 +1,7 @@
 # Tripper
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **TR**anscript r**IPPER** — a local web app that downloads a YouTube or Instagram Reel video, transcribes the audio using OpenAI Whisper, optionally detects slide transitions, and produces a clean timestamped transcript.
 
 ## What it does
