@@ -82,7 +82,7 @@ def download_video(url: str, cache_key: str) -> tuple[Path, Path, str]:
     # Get title first
     title_proc = subprocess.run(
         ["yt-dlp", "--print", "title", "--no-warnings", url],
-        capture_output=True, text=True, timeout=60,
+        capture_output=True, text=True,
     )
     title = title_proc.stdout.strip() or "transcript"
 
@@ -100,7 +100,7 @@ def download_video(url: str, cache_key: str) -> tuple[Path, Path, str]:
             "--no-playlist",
             url,
         ],
-        capture_output=True, text=True, timeout=600,
+        capture_output=True, text=True,
         check=True,
     )
 
@@ -111,7 +111,7 @@ def download_video(url: str, cache_key: str) -> tuple[Path, Path, str]:
             "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
             str(audio_path),
         ],
-        capture_output=True, text=True, timeout=300,
+        capture_output=True, text=True,
         check=True,
     )
 
@@ -125,22 +125,31 @@ def download_video(url: str, cache_key: str) -> tuple[Path, Path, str]:
 
 
 def detect_slides(video_path: Path, threshold: float) -> list[float]:
-    """Run ffmpeg scene detection.  Returns sorted list of timestamps (seconds)."""
+    """Run ffmpeg scene detection.  Returns sorted list of timestamps (seconds).
+    Uses Popen to stream stderr so we can emit progress and avoid connection drops."""
     _emit(f"Detecting slide changes (threshold={threshold})...")
-    result = subprocess.run(
+    proc = subprocess.Popen(
         [
             "ffmpeg", "-i", str(video_path),
             "-filter:v", f"select='gt(scene,{threshold})',showinfo",
             "-f", "null", "-",
         ],
-        capture_output=True, text=True, timeout=600,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
     )
-    # Parse pts_time from showinfo output (appears on stderr)
     timestamps: list[float] = []
-    for line in result.stderr.splitlines():
+    last_heartbeat = time.time()
+    for line in proc.stderr:
         m = re.search(r"pts_time:([\d.]+)", line)
         if m:
             timestamps.append(float(m.group(1)))
+        # Emit a heartbeat every 30s so the SSE connection stays alive
+        now = time.time()
+        if now - last_heartbeat > 30:
+            _emit(f"Detecting slide changes... {len(timestamps)} transitions so far")
+            last_heartbeat = now
+    proc.wait()
     timestamps.sort()
     _emit(f"Detecting slide changes... found {len(timestamps)} transitions")
     return timestamps
